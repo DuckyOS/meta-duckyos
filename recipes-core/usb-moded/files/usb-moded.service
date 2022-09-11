@@ -1,0 +1,23 @@
+[Unit]
+Description=usb-moded USB gadget controller
+DefaultDependencies=no
+Wants=systemd-udev-settle.service
+Requires=dbus.socket
+After=local-fs.target dbus.socket systemd-udev-settle.service sys-kernel-config.mount android-tools-adbd.service
+Before=android-system.service
+Conflicts=shutdown.target
+
+[Service]
+Type=notify
+TimeoutSec=25
+EnvironmentFile=-/var/lib/environment/usb-moded/*.conf
+EnvironmentFile=-/run/usb-moded/*.conf
+ExecStartPre=-/usr/bin/android-gadget-setup adb
+ExecStart=/usr/sbin/usb_moded --systemd --force-syslog $USB_MODED_ARGS $USB_MODED_HW_ADAPTATION_ARGS
+Restart=always
+ExecReload=/bin/kill -HUP $MAINPID
+
+CapabilityBoundingSet=CAP_BLOCK_SUSPEND CAP_NET_ADMIN CAP_NET_RAW CAP_SETUID CAP_SETGID CAP_SYS_RESOURCE CAP_DAC_OVERRIDE CAP_SYS_ADMIN
+
+[Install]
+WantedBy=basic.target
